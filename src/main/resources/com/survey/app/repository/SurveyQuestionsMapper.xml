@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.survey.app.repository.SurveyQuestionsMapper">
+
+	<resultMap type="com.survey.app.model.SurveyQuestions"
+		id="fetchSurveyQuestions">
+		<result property="surveyId" column="SURVEY_ID" />
+		<result property="questionId" column="QUESTION_ID" />
+	</resultMap>
+
+	<resultMap type="com.survey.app.model.PollSurvey"
+		id="fetchSurveyPoll">
+		<result property="pollSurveyId" column="POLL_SURVEY_ID" />
+		<result property="surveyId" column="SURVEY_ID" />
+		<result property="questionId" column="QUESTION_ID" />
+		<result property="question" column="QUESTION" />
+	</resultMap>
+
+	<resultMap type="com.survey.app.model.PollSurveyDetails"
+		id="fetchSurveyPollDetails">
+		<result property="answerId" column="ANSWER_ID" />
+		<result property="answer" column="ANSWER" />
+	</resultMap>
+
+
+	<insert id="saveList" parameterType="java.util.List">
+		INSERT INTO
+		SURVEY_QUESTIONS(SURVEY_ID,QUESTION_ID)
+		VALUES
+		<foreach collection="list" item="surveyQuestions"
+			index="index" separator=",">
+			( #{surveyQuestions.surveyId},
+			#{surveyQuestions.questionId}
+			)
+		</foreach>
+	</insert>
+
+	<select id="findBySurveyId" parameterType="int"
+		resultType="com.survey.app.model.SurveyQuestions"
+		resultMap="fetchSurveyQuestions">
+		SELECT SURVEY_ID,QUESTION_ID FROM SURVEY_QUESTIONS WHERE
+		survey_Id = #{surveyId}
+	</select>
+
+	<select id="findBySurveyIdAndQuestionId" parameterType="int"
+		resultType="com.survey.app.model.SurveyQuestions"
+		resultMap="fetchSurveyQuestions">
+		SELECT SURVEY_ID,QUESTION_ID FROM SURVEY_QUESTIONS WHERE
+		survey_Id = #{surveyId} AND QUESTION_ID = #{questionId}
+	</select>
+
+	<insert id="savePollList" parameterType="java.util.List">
+		INSERT INTO
+		POLL_SURVEY(SURVEY_ID,QUESTION_ID,QUESTION,NO_OFPOLLS)
+		VALUES
+		<foreach collection="list" item="pollSurvey" index="index"
+			separator=",">
+			( #{"sollSurvey".surveyId},
+			#{"sollSurvey".questionId},
+			#{"sollSurvey".question},
+			#{"sollSurvey".NoOfpolls}
+			)
+		</foreach>
+	</insert>
+
+	<insert id="savePollDetailsList" parameterType="java.util.List">
+		INSERT INTO
+		POLL_SURVEY_DETAILS(POLL_SURVEY_ID,ANSWER_ID,ANSWER,TOTAL_POLLS_TO_ANSWER)
+		VALUES
+		<foreach collection="list" item="pollSurveyDetails"
+			index="index" separator=",">
+			( #{"pollSurveyDetails".pollSurveyId},
+			#{"pollSurveyDetails".answerId},
+			#{"pollSurveyDetails".answer},
+			#{"pollSurveyDetails".totalPollsToAnswer}
+			)
+		</foreach>
+	</insert>
+
+	<select id="selectMaxNoOfpolls" resultType="java.lang.Integer"
+		parameterType="int">
+		SELECT
+		max(NO_OFPOLLS)
+		FROM
+		POLL_SURVEY
+		WHERE
+		SURVEY_ID =
+		#{surveyId}
+	</select>
+
+	<select id="selectMaxTotalPollsToAnswer"
+		resultType="java.lang.Integer" parameterType="int">
+		SELECT
+		max(TOTAL_POLLS_TO_ANSWER) FROM POLL_SURVEY_DETAILS INNER JOIN
+		POLL_SURVEY ON POLL_SURVEY_DETAILS.POLL_SURVEY_ID =
+		POLL_SURVEY.POLL_SURVEY_ID AND SURVEY_ID = #{surveyId} AND QUESTION_ID
+		= #{questionId}
+		AND ANSWER_ID = #{answerId}
+	</select>
+
+	<select id="findPollSurveyBySurveyId" parameterType="int"
+		resultType="com.survey.app.model.PollSurvey"
+		resultMap="fetchSurveyPoll">
+		SELECT POLL_SURVEY_ID,SURVEY_ID,QUESTION_ID,QUESTION FROM
+		POLL_SURVEY WHERE
+		SURVEY_ID = #{surveyId}
+	</select>
+
+	<select id="findPollSurveyDetailsBySurveyId" parameterType="int"
+		resultType="com.survey.app.model.PollSurveyDetails"
+		resultMap="fetchSurveyPollDetails">
+		SELECT ANSWER_ID,ANSWER FROM POLL_SURVEY_DETAILS INNER JOIN
+		POLL_SURVEY ON POLL_SURVEY_DETAILS.POLL_SURVEY_ID =
+		POLL_SURVEY.POLL_SURVEY_ID AND SURVEY_ID = #{surveyId} AND QUESTION_ID
+		= #{questionId};
+	</select>
+
+	<select id="checkValidAnswer" resultType="java.lang.Integer"
+		parameterType="int">
+		SELECT
+		count(ANSWER_ID)
+		FROM
+		ANSWERS
+		WHERE
+		ANSWER_ID =
+		#{answerId}
+	</select>
+
+</mapper>
